@@ -5,6 +5,10 @@ AutoMLCLI
 
 
 ```
+# Install AutoMLCLI
+$ pip install git+https://github.com/altescy/automlcli.git
+$ pip install automlcli[all]
+
 # Train model
 $ automl train config.yml train.csv model.pkl
 
