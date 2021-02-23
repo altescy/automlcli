@@ -1,0 +1,5 @@
+model:
+  type: flaml
+  time_budget: 1
+  metric: accuracy
+  task: classification
