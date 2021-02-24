@@ -8,13 +8,13 @@ authors = ["altescy <altescy@fastmail.com>"]
 python = "^3.8"
 colt = "^0.6.1"
 fs = "^2.4.12"
+fs-s3fs = "^1.1.1"
 numpy = "^1.20.1"
 omegaconf = "^2.0.6"
 pandas = "^1.2.2"
 requests = "^2.25.1"
 tqdm = "^4.57.0"
 flaml = {version = "^0.2.5", optional = true}
-fs-s3fs = {version = "^1.1.1", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -25,7 +25,7 @@ ipython = "^7.20.0"
 
 [tool.poetry.extras]
 flaml=["flaml"]
-all=["flaml", "fs-s3fs"]
+all=["flaml"]
 
 [tool.poetry.scripts]
 automl = "automlcli.__main__:run"
