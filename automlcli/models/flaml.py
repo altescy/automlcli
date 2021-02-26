@@ -1,14 +1,12 @@
 from __future__ import annotations
-from typing import cast, Optional, Tuple, Union
+from typing import Optional, Union
 from pathlib import Path
 import tempfile
 
 import numpy
-import pandas
 
-from automlcli.exceptions import ConfigurationError
 from automlcli.models.model import Model
-from automlcli.util import cached_path, get_file_ext
+from automlcli.util import cached_path
 
 
 def _flaml_automl():
@@ -24,6 +22,7 @@ def _flaml_automl():
 @Model.register("flaml")
 class FLAML(Model):
     def __init__(self, target_column: str, **kwargs) -> None:
+        super().__init__(target_column)
         self._target_column = target_column
         self._kwargs = kwargs
         self._flaml_log: Optional[str] = None
@@ -31,47 +30,19 @@ class FLAML(Model):
         self._best_estimator = None
         self._best_config = None
 
-    @staticmethod
-    def _read_dataframe(file_path: Union[str, Path]) -> pandas.DataFrame:
-        ext = get_file_ext(file_path)
-        if ext in (".pkl", "pickle"):
-            return cast(numpy.ndarray,
-                        pandas.read_pickle(file_path).to_numpy())
-        if ext in (".csv", ):
-            return pandas.read_csv(file_path)
-        raise ConfigurationError(f"Could not read the given file: {file_path}")
-
-    def _dataframe_to_numpy(
-        self,
-        df: pandas.DataFrame,
-    ) -> Tuple[numpy.ndarray, Optional[numpy.ndarray]]:
-        y: Optional[numpy.ndarray] = None
-        if self._target_column in df.columns:
-            y = cast(numpy.ndarray, df.pop(self._target_column).to_numpy())
-        X = cast(numpy.ndarray, df.to_numpy())
-        return X, y
-
-    def _read_datafile(
-        self,
-        file_path: Union[str, Path],
-    ) -> Tuple[numpy.ndarray, Optional[numpy.ndarray]]:
-        df = self._read_dataframe(file_path)
-        X, y = self._dataframe_to_numpy(df)
-        return X, y
-
     def train(
         self,
         train_file: Union[str, Path],
         validation_file: Optional[Union[str, Path]] = None,
     ) -> None:
         train_file = cached_path(train_file)
-        X_train, y_train = self._read_datafile(train_file)
+        X_train, y_train = self.load_data(train_file)
         assert y_train is not None
 
         X_val: Optional[numpy.ndarray] = None
         y_val: Optional[numpy.ndarray] = None
         if validation_file is not None:
-            X_val, y_val = self._read_datafile(validation_file)
+            X_val, y_val = self.load_data(validation_file)
             assert y_val is not None
 
         automl = _flaml_automl()
@@ -97,7 +68,7 @@ class FLAML(Model):
         if self._best_model is None:
             raise RuntimeError("Model is not trained.")
         file_path = cached_path(train_file)
-        X, y = self._read_datafile(file_path)
+        X, y = self.load_data(file_path)
         self._best_model.fit(X, y)
 
     def predict(
@@ -108,7 +79,7 @@ class FLAML(Model):
         if self._best_model is None:
             raise RuntimeError("Model is not trained.")
         file_path = cached_path(file_path)
-        X, _ = self._read_datafile(file_path)
+        X, _ = self.load_data(file_path)
         if probability:
             return self._best_model.predict_proba(X)  # type: ignore
         return self._best_model.predict(X)  # type: ignore
