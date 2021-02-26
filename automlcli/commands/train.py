@@ -1,9 +1,10 @@
 import argparse
+import json
 import logging
 import pickle
 
 from automlcli.configs import load_yaml, build_config
-from automlcli.util import cached_path, open_file
+from automlcli.util import cached_path, create_workdir
 from automlcli.commands.subcommand import Subcommand
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class TrainCommand(Subcommand):
         self.parser.add_argument(
             "output",
             type=str,
-            help="path to a trained model file",
+            help="directory in which to save the model and its logs",
         )
         self.parser.add_argument(
             "overrides",
@@ -42,6 +43,13 @@ class TrainCommand(Subcommand):
             default=None,
             help="path to a validation data file",
         )
+        self.parser.add_argument(
+            "-f",
+            "--force",
+            action="store_true",
+            required=False,
+            help="overwrite the output directory if it exists",
+        )
 
     def run(self, args: argparse.Namespace) -> None:
         logger.info("Load config from %s", args.config)
@@ -53,12 +61,17 @@ class TrainCommand(Subcommand):
         logger.info("Start training...")
         logger.info("Training data: %s", args.train)
         logger.info("Validation data: %s", str(args.validation))
-        model.train(args.train, args.validation)
 
-        logger.info("Training completed")
+        with create_workdir(args.output, exist_ok=args.force) as workdir:
+            metrics = model.train(args.train, args.validation, workdir)
 
-        logger.info("Save model to %s", args.output)
-        with open_file(args.output, "wb") as fp:
-            pickle.dump(model, fp)
+            logger.info("Training completed")
+            logger.info("Training metrics: %s", metrics)
+
+            with open(workdir / "metrics.json", "w") as metrics_file:
+                json.dump(metrics, metrics_file)
+
+            with open(workdir / "model.pkl", "wb") as model_file:
+                pickle.dump(model, model_file)
 
         logger.info("Done!")

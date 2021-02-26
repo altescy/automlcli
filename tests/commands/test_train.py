@@ -13,15 +13,14 @@ def test_train_command():
     validation_path = FIXTURE_PATH / "data" / "dev.csv"
 
     with tempfile.TemporaryDirectory() as tempdir:
-        tempdir = Path(tempdir)
-        model_path = tempdir / "model.pkl"
+        output_dir = Path(tempdir) / "output"
 
         parser = create_parser()
         args = parser.parse_args([
             "train",
             str(config_path),
             str(train_path),
-            str(model_path),
+            str(output_dir),
             "model.target_column=target",
             "--validation",
             str(validation_path),
@@ -29,4 +28,6 @@ def test_train_command():
 
         args.func(args)
 
-        assert model_path.is_file()
+        assert output_dir.is_dir()
+        assert (output_dir / "metrics.json").is_file()
+        assert (output_dir / "model.pkl").is_file()

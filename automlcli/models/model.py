@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 from pathlib import Path
 
 import colt
@@ -39,7 +39,8 @@ class Model(colt.Registrable):
         self,
         train_file: Union[str, Path],
         validation_file: Optional[Union[str, Path]] = None,
-    ) -> None:
+        workdir: Optional[Union[str, Path]] = None,
+    ) -> Dict[str, float]:
         raise NotImplementedError
 
     def retrain(self, train_file: Union[str, Path]) -> None:
@@ -48,6 +49,5 @@ class Model(colt.Registrable):
     def predict(
         self,
         file_path: Union[str, Path],
-        probability: bool = False,
     ) -> numpy.ndarray:
         raise NotImplementedError

@@ -11,6 +11,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from fs import open_fs
+from fs.copy import copy_fs
 from tqdm import tqdm
 
 from automlcli.settings import CACHE_DIRRECTORY
@@ -31,6 +32,25 @@ def get_parent_path_and_filename(file_path: str) -> Tuple[str, str]:
         parent = "./"
         name = str(file_path)
     return parent, name
+
+
+@contextmanager
+def create_workdir(path: Union[str, Path],
+                   exist_ok: bool = False) -> Iterator[Path]:
+    parsed = urlparse(str(path))
+    if parsed.scheme in ("", "file", "osfs"):
+        os.makedirs(parsed.path, exist_ok=exist_ok)
+        yield Path(parsed.path)
+        return
+
+    path = str(path)
+    with open_fs(path) as fs:
+        if not exist_ok and fs.exists:
+            raise FileExistsError(f"File exists: {path}")
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        yield Path(tempdir)
+        copy_fs(tempdir, path)
 
 
 def cached_path(url_or_filename: Union[str, Path],
