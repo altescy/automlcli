@@ -48,11 +48,15 @@ class Model(colt.Registrable):
         assert y is not None
         self.fit(X, y)
 
-    def fit(self, X: numpy.ndarray, y: numpy.ndarray) -> Model:
-        raise NotImplementedError
-
-    def predict(
+    def predict_from_file(
         self,
         file_path: Union[str, Path],
     ) -> numpy.ndarray:
+        X, _ = self.load_data(file_path)
+        return self.predict(X)
+
+    def fit(self, X: numpy.ndarray, y: numpy.ndarray) -> Model:
+        raise NotImplementedError
+
+    def predict(self, X: numpy.ndarray) -> numpy.ndarray:
         raise NotImplementedError
