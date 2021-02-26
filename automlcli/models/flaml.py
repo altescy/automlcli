@@ -87,12 +87,11 @@ class FLAML(Model):
 
         return metrics
 
-    def retrain(self, train_file: Union[str, Path]) -> None:
+    def fit(self, X: numpy.ndarray, y: numpy.ndarray) -> FLAML:
         if self._flaml_best_model is None:
             raise RuntimeError("Model is not trained.")
-        file_path = cached_path(train_file)
-        X, y = self.load_data(file_path)
         self._flaml_best_model.fit(X, y)
+        return self
 
     def predict(
         self,

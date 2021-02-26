@@ -44,6 +44,11 @@ class Model(colt.Registrable):
         raise NotImplementedError
 
     def retrain(self, train_file: Union[str, Path]) -> None:
+        X, y = self.load_data(train_file)
+        assert y is not None
+        self.fit(X, y)
+
+    def fit(self, X: numpy.ndarray, y: numpy.ndarray) -> Model:
         raise NotImplementedError
 
     def predict(
