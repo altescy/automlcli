@@ -1,4 +1,4 @@
-from typing import Any, IO, Iterator, Tuple, Union
+from typing import Any, IO, Iterator, Optional, Tuple, Union
 from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import urlparse
@@ -35,8 +35,13 @@ def get_parent_path_and_filename(file_path: str) -> Tuple[str, str]:
 
 
 @contextmanager
-def create_workdir(path: Union[str, Path],
+def create_workdir(path: Optional[Union[str, Path]] = None,
                    exist_ok: bool = False) -> Iterator[Path]:
+    if path is None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            yield Path(tempdir)
+            return
+
     parsed = urlparse(str(path))
     if parsed.scheme in ("", "file", "osfs"):
         os.makedirs(parsed.path, exist_ok=exist_ok)

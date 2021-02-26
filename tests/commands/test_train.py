@@ -20,8 +20,9 @@ def test_train_command():
             "train",
             str(config_path),
             str(train_path),
-            str(output_dir),
             "model.target_column=target",
+            "--serialization-dir",
+            str(output_dir),
             "--validation",
             str(validation_path),
         ])

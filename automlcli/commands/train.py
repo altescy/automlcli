@@ -2,12 +2,51 @@ import argparse
 import json
 import logging
 import pickle
+import sys
+from contextlib import contextmanager
+
+from flatten_dict import flatten
+try:
+    import mlflow
+
+    # Patch mlflow.log_params to log nested params.
+    _mlflow_log_param = mlflow.log_param
+    _mlflow_log_params = mlflow.log_params
+
+    def _log_params(params):
+        flattened_params = flatten(params, reducer="dot")
+        _mlflow_log_params(flattened_params)
+
+    def _log_param(key, value):
+        if isinstance(value, dict):
+            flattened_params = flatten(value, reducer="dot")
+            flattened_params = {
+                f"{key}.k": v
+                for k, v in flattened_params.items()
+            }
+            _log_params(flattened_params)
+        else:
+            _mlflow_log_param(key, value)
+
+    mlflow.log_param = _log_param
+    mlflow.log_params = _log_params
+except ImportError:
+    mlflow = None
 
 from automlcli.configs import load_yaml, build_config
 from automlcli.util import cached_path, create_workdir
 from automlcli.commands.subcommand import Subcommand
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _mlflow_start_run(*args, **kwargs):
+    if mlflow is not None:
+        with mlflow.start_run(*args, **kwargs) as run:
+            yield run
+    else:
+        yield None
 
 
 @Subcommand.register(
@@ -28,14 +67,16 @@ class TrainCommand(Subcommand):
             help="path to a training data file",
         )
         self.parser.add_argument(
-            "output",
-            type=str,
-            help="directory in which to save the model and its logs",
-        )
-        self.parser.add_argument(
             "overrides",
             nargs="*",
             help="arguments to override config values",
+        )
+        self.parser.add_argument(
+            "-s",
+            "--serialization-dir",
+            type=str,
+            default=None,
+            help="directory in which to save the model and its logs",
         )
         self.parser.add_argument(
             "--validation",
@@ -62,16 +103,42 @@ class TrainCommand(Subcommand):
         logger.info("Training data: %s", args.train)
         logger.info("Validation data: %s", str(args.validation))
 
-        with create_workdir(args.output, exist_ok=args.force) as workdir:
-            metrics = model.train(args.train, args.validation, workdir)
+        with _mlflow_start_run() as _run:
+            if mlflow is not None:
+                logger.info("Log params to mlflow")
+                params = {
+                    "command": " ".join(sys.argv),
+                    "config_file": args.config,
+                    "train_file": args.train,
+                    "validation_file": args.validation,
+                    "serialization_dir": args.serialization_dir,
+                    "config": config,
+                }
+                mlflow.log_params(params)
 
-            logger.info("Training completed")
-            logger.info("Training metrics: %s", json.dumps(metrics, indent=2))
+            serialization_dir = args.serialization_dir
+            if args.serialization_dir is None and mlflow is None:
+                serialization_dir = "./output"
 
-            with open(workdir / "metrics.json", "w") as metrics_file:
-                json.dump(metrics, metrics_file)
+            with create_workdir(
+                    serialization_dir,
+                    exist_ok=args.force,
+            ) as workdir:
+                metrics = model.train(args.train, args.validation, workdir)
 
-            with open(workdir / "model.pkl", "wb") as model_file:
-                pickle.dump(model, model_file)
+                logger.info("Training completed")
+                logger.info("Training metrics: %s",
+                            json.dumps(metrics, indent=2))
+
+                with open(workdir / "metrics.json", "w") as metrics_file:
+                    json.dump(metrics, metrics_file)
+
+                with open(workdir / "model.pkl", "wb") as model_file:
+                    pickle.dump(model, model_file)
+
+                if mlflow is not None:
+                    logger.info("Log metrics and artifacts to mlflow")
+                    mlflow.log_metrics(metrics)
+                    mlflow.log_artifacts(str(workdir))
 
         logger.info("Done!")

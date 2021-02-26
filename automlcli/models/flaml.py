@@ -71,7 +71,11 @@ class FLAML(Model):
 
         if workdir is not None:
             workdir = Path(workdir)
+            log_file = workdir / "log.json"
             best_file = workdir / "best.json"
+
+            with open(log_file, "w") as fp:
+                fp.write(self._flaml_log)
 
             best = {
                 "best_estimator": self._flaml_best_estimator,

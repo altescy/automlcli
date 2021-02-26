@@ -14,7 +14,9 @@ omegaconf = "^2.0.6"
 pandas = "^1.2.2"
 requests = "^2.25.1"
 tqdm = "^4.57.0"
+flatten-dict = "^0.3.0"
 flaml = {version = "^0.2.5", optional = true}
+mlflow = {version = "^1.14.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -25,7 +27,8 @@ ipython = "^7.20.0"
 
 [tool.poetry.extras]
 flaml=["flaml"]
-all=["flaml"]
+mlflow=["mlflow"]
+all=["flaml", "mlflow"]
 
 [tool.poetry.scripts]
 automl = "automlcli.__main__:run"
