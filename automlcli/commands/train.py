@@ -66,7 +66,7 @@ class TrainCommand(Subcommand):
             metrics = model.train(args.train, args.validation, workdir)
 
             logger.info("Training completed")
-            logger.info("Training metrics: %s", metrics)
+            logger.info("Training metrics: %s", json.dumps(metrics, indent=2))
 
             with open(workdir / "metrics.json", "w") as metrics_file:
                 json.dump(metrics, metrics_file)
