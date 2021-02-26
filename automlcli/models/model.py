@@ -11,7 +11,7 @@ from automlcli.util import get_file_ext, cached_path
 
 class Model(colt.Registrable):
     def __init__(self, target_column: str) -> None:
-        self.target_column = target_column
+        self._target_column = target_column
 
     def load_data(
         self, file_path: Union[str, Path]
