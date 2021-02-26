@@ -6,16 +6,17 @@ import colt
 import numpy
 import pandas
 
-from automlcli.util import get_file_ext
+from automlcli.util import get_file_ext, cached_path
 
 
 class Model(colt.Registrable):
     def __init__(self, target_column: str) -> None:
-        self._target_column = target_column
+        self.target_column = target_column
 
     def load_data(
         self, file_path: Union[str, Path]
     ) -> Tuple[numpy.ndarray, Optional[numpy.ndarray]]:
+        file_path = cached_path(file_path)
         ext = get_file_ext(file_path)
         if ext in (".pkl", ".pickle"):
             df = pandas.read_pickle(file_path)
