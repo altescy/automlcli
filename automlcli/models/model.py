@@ -41,7 +41,7 @@ class Model(colt.Registrable):
         y: Optional[numpy.ndarray] = None
         if self._target_column in df.columns:
             y = df.pop(self._target_column).to_numpy()
-        X = df.to_numpy()
+        X = df.to_numpy(dtype=float)
         return X, y
 
     def train(
