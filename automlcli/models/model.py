@@ -1,17 +1,25 @@
 from __future__ import annotations
-from typing import Dict, Optional, Tuple, Union
+from typing import cast, Dict, Optional, Tuple, Union
 from pathlib import Path
 
 import colt
 import numpy
 import pandas
+from sklearn.base import BaseEstimator
 
 from automlcli.util import get_file_ext, cached_path
 
 
 class Model(colt.Registrable):
-    def __init__(self, target_column: str) -> None:
+    def __init__(
+        self,
+        target_column: str,
+    ) -> None:
         self._target_column = target_column
+
+    @property
+    def estimator(self) -> BaseEstimator:
+        raise NotImplementedError
 
     def load_data(
         self, file_path: Union[str, Path]
@@ -45,19 +53,11 @@ class Model(colt.Registrable):
         raise NotImplementedError
 
     def retrain(self, train_file: Union[str, Path]) -> None:
-        X, y = self.load_data(train_file)
-        assert y is not None
-        self.fit(X, y)
+        raise NotImplementedError
 
-    def predict_from_file(
+    def predict(
         self,
         file_path: Union[str, Path],
     ) -> numpy.ndarray:
         X, _ = self.load_data(file_path)
-        return self.predict(X)
-
-    def fit(self, X: numpy.ndarray, y: numpy.ndarray) -> Model:
-        raise NotImplementedError
-
-    def predict(self, X: numpy.ndarray) -> numpy.ndarray:
-        raise NotImplementedError
+        return cast(numpy.ndarray, self.estimator.predict(X))

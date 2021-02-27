@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import cast, Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 from pathlib import Path
 import json
 import tempfile
 
 import numpy
+from sklearn.base import BaseEstimator
 
 try:
     import flaml
@@ -25,10 +26,16 @@ class FLAML(Model):
         self._target_column = target_column
         self._kwargs = kwargs
         self._flaml_log: Optional[str] = None
-        self._flaml_best_model: Optional[flaml.model.BaseEstimator] = None
+        self._flaml_best_model: Optional[BaseEstimator] = None
         self._flaml_best_estimator: Optional[str] = None
         self._flaml_best_config: Optional[Dict[str, Any]] = None
         self._flaml_best_iteration: Optional[int] = None
+
+    @property
+    def estimator(self) -> BaseEstimator:
+        if self._flaml_best_model is None:
+            raise RuntimeError("FLAML model is not trained.")
+        return self._flaml_best_model
 
     def train(
         self,
@@ -87,14 +94,9 @@ class FLAML(Model):
 
         return metrics
 
-    def fit(self, X: numpy.ndarray, y: numpy.ndarray) -> FLAML:
-        if self._flaml_best_model is None:
-            raise RuntimeError("Model is not trained.")
-        self._flaml_best_model.fit(X, y)
-        return self
-
-    def predict(self, X: numpy.ndarray) -> numpy.ndarray:
-        if self._flaml_best_model is None:
-            raise RuntimeError("Model is not trained.")
-        y_pred = self._flaml_best_model.predict(X)
-        return cast(numpy.ndarray, y_pred)
+    def retrain(self, train_file: Union[str, Path]) -> None:
+        X_train, y_train = self.load_data(train_file)
+        if y_train is None:
+            raise ValueError(f"Target column ({self._target_column}) does "
+                             f"not exists in {train_file}")
+        self._flaml_best_model = self.estimator.fit(X_train, y_train)

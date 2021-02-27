@@ -44,7 +44,7 @@ class PredictCommand(Subcommand):
             model = pickle.load(fp)  # type: Model
 
         logger.info("Make predictions for %s", args.data)
-        predictions = model.predict_from_file(args.data)
+        predictions = model.predict(args.data)
 
         if not args.quiet:
             print(predictions)

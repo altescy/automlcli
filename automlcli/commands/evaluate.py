@@ -4,6 +4,7 @@ import logging
 import pickle
 
 from sklearn.metrics import get_scorer
+from sklearn.model_selection import cross_validate
 
 from automlcli.models import Model
 from automlcli.util import open_file
@@ -48,18 +49,14 @@ class EvaluateCommand(Subcommand):
             default=None,
             help="path to a output file of evaluation result",
         )
-        self.parser.add_argument(
-            "--quiet",
-            action="store_true",
-            help="do not show evaluation result",
-        )
 
     def run(self, args: argparse.Namespace) -> None:
         logger.info("Load model from %s", args.model)
         with open_file(args.model, "rb") as fp:
             model = pickle.load(fp)  # type: Model
 
-        logger.info("Model: %s", model)
+        estimator = model.estimator
+        logger.info("Estimator: %s", estimator)
 
         logger.info("Load data from %s", args.data)
         X, y = model.load_data(args.data)
@@ -71,14 +68,23 @@ class EvaluateCommand(Subcommand):
         scorers = {scoring: get_scorer(scoring) for scoring in scoring}
         if args.cv is None:
             metrics = {
-                metric: scorer(model, X, y)
+                metric: scorer(estimator, X, y)
                 for metric, scorer in scorers.items()
             }
+            for metric, score in metrics.items():
+                print(f"{metric:24s} : {score:.4f}")
         else:
-            raise NotImplementedError("Cross validation is not implemented.")
-
-        if not args.quiet:
-            print(json.dumps(metrics, indent=2))
+            metrics = cross_validate(estimator,
+                                     X,
+                                     y,
+                                     cv=args.cv,
+                                     scoring=scoring,
+                                     n_jobs=-1)
+            for metric, scores in metrics.items():
+                print(
+                    f"{metric:24s}: {scores.mean():.4f} +/- {scores.std():.4f}"
+                )
+                metrics[metric] = list(scores)
 
         if args.output_file is not None:
             logger.info("Save predictions to %s", args.output_file)
