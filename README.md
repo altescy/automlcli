@@ -25,6 +25,17 @@ $ pip install "automlcli[all]"
 
 ## Usage
 
+#### Write config file
+```yaml
+# config.yml
+model:
+  type: flaml
+  time_budget: 100
+  metric: accuracy
+  task: classification
+  target_column: target
+```
+
 #### Train a model
 ```
 $ automl train config.yml train.csv --serialization-dir out
