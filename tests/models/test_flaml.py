@@ -14,9 +14,6 @@ def test_flaml_train():
     model = FLAML(target_column="target", time_budget=1)
     with tempfile.TemporaryDirectory() as tempdir:
         tempdir = Path(tempdir)
-        mlflow.set_tracking_uri(f"file://{tempdir}")
-        mlflow.set_experiment("test")
-
         with mlflow.start_run():
             model.train(
                 data_path,
