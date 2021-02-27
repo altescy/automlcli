@@ -124,21 +124,24 @@ class TrainCommand(Subcommand):
                     serialization_dir,
                     exist_ok=args.force,
             ) as workdir:
-                metrics = model.train(args.train, args.validation, workdir)
+                try:
+                    metrics = model.train(args.train, args.validation, workdir)
+                    if mlflow is not None:
+                        logger.info("Log metrics to mlflow")
+                        mlflow.log_metrics(metrics)
 
-                logger.info("Training completed")
-                logger.info("Training metrics: %s",
-                            json.dumps(metrics, indent=2))
+                    logger.info("Training completed")
+                    logger.info("Training metrics: %s",
+                                json.dumps(metrics, indent=2))
 
-                with open(workdir / "metrics.json", "w") as metrics_file:
-                    json.dump(metrics, metrics_file)
+                    with open(workdir / "metrics.json", "w") as metrics_file:
+                        json.dump(metrics, metrics_file)
 
-                with open(workdir / "model.pkl", "wb") as model_file:
-                    pickle.dump(model, model_file)
-
-                if mlflow is not None:
-                    logger.info("Log metrics and artifacts to mlflow")
-                    mlflow.log_metrics(metrics)
-                    mlflow.log_artifacts(str(workdir))
+                    with open(workdir / "model.pkl", "wb") as model_file:
+                        pickle.dump(model, model_file)
+                finally:
+                    if mlflow is not None:
+                        logger.info("Log metrics to mlflow")
+                        mlflow.log_artifacts(str(workdir))
 
         logger.info("Done!")
