@@ -14,9 +14,9 @@ def test_train_command() -> None:
     model_path = FIXTURE_PATH / "data" / "model.pkl"
     test_path = FIXTURE_PATH / "data" / "test.csv"
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        tempdir = Path(tempdir)
-        prediction_path = tempdir / "preds.pkl"
+    with tempfile.TemporaryDirectory() as _tempdir:
+        tempdir = Path(_tempdir)
+        prediction_path = tempdir / "predictions.csv"
 
         parser = create_parser()
         args = parser.parse_args(
@@ -34,7 +34,6 @@ def test_train_command() -> None:
         assert prediction_path.is_file()
 
         test_df = pandas.read_csv(test_path)
-        with open(prediction_path, "rb") as fp:
-            predictions = pickle.load(fp)
+        predictions = pandas.read_csv(prediction_path)
 
         assert len(test_df) == len(predictions)

@@ -1,6 +1,7 @@
 import argparse
 import logging
 import pickle
+import sys
 
 from automlcli.commands.subcommand import Subcommand
 from automlcli.models import Model
@@ -47,11 +48,11 @@ class PredictCommand(Subcommand):
         predictions = model.predict(args.data)
 
         if not args.quiet:
-            print(predictions)
+            predictions.to_csv(sys.stdout)
 
         if args.output_file is not None:
             logger.info("Save predictions to %s", args.output_file)
             with open_file(args.output_file, "wb") as fp:
-                pickle.dump(predictions, fp)
+                predictions.to_csv(fp)
 
         logger.info("Done!")
