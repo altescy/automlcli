@@ -5,7 +5,7 @@ PYSEN    := poetry run pysen
 MODULE   := automlcli
 
 .PHONY: all
-all: mypy lint test
+all: format lint test
 
 .PHONY: test
 test:
