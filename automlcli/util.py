@@ -1,18 +1,18 @@
-from typing import Any, IO, Iterator, Optional, Tuple, Union
-from contextlib import contextmanager
-from pathlib import Path
-from urllib.parse import urlparse
 import hashlib
 import logging
 import os
 import tempfile
+from contextlib import contextmanager
+from pathlib import Path
+from typing import IO, Any, Iterator, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from fs import open_fs
 from fs.copy import copy_fs
+from requests.adapters import HTTPAdapter
 from tqdm import tqdm
+from urllib3.util.retry import Retry
 
 from automlcli.settings import CACHE_DIRRECTORY
 
@@ -35,8 +35,9 @@ def get_parent_path_and_filename(file_path: str) -> Tuple[str, str]:
 
 
 @contextmanager
-def create_workdir(path: Optional[Union[str, Path]] = None,
-                   exist_ok: bool = False) -> Iterator[Path]:
+def create_workdir(
+    path: Optional[Union[str, Path]] = None, exist_ok: bool = False
+) -> Iterator[Path]:
     if path is None:
         with tempfile.TemporaryDirectory() as tempdir:
             yield Path(tempdir)
@@ -58,8 +59,9 @@ def create_workdir(path: Optional[Union[str, Path]] = None,
         copy_fs(tempdir, path)
 
 
-def cached_path(url_or_filename: Union[str, Path],
-                cache_dir: Union[str, Path] = None) -> Path:
+def cached_path(
+    url_or_filename: Union[str, Path], cache_dir: Optional[Union[str, Path]] = None
+) -> Path:
     cache_dir = Path(cache_dir or CACHE_DIRRECTORY)
 
     os.makedirs(cache_dir, exist_ok=True)
@@ -71,15 +73,14 @@ def cached_path(url_or_filename: Union[str, Path],
 
     cache_path = cache_dir / _get_cached_filename(url_or_filename)
     if cache_path.exists():
-        logger.info("use cache for %s: %s", str(url_or_filename),
-                    str(cache_path))
+        logger.info("use cache for %s: %s", str(url_or_filename), str(cache_path))
         return cache_path
 
     cache_fp = open(cache_path, "w+b")
     try:
         with open_file(url_or_filename, "r+b") as fp:
             cache_fp.write(fp.read())
-    except:
+    except:  # noqa
         cache_fp.close()
         os.remove(cache_path)
         raise
@@ -90,9 +91,9 @@ def cached_path(url_or_filename: Union[str, Path],
 
 
 @contextmanager
-def open_file(file_path: Union[str, Path],
-              mode: str = "r",
-              **kwargs) -> Iterator[IO[Any]]:
+def open_file(
+    file_path: Union[str, Path], mode: str = "r", **kwargs: Any
+) -> Iterator[IO[Any]]:
     parsed = urlparse(str(file_path))
 
     if parsed.scheme in ("http", "https"):
@@ -106,7 +107,7 @@ def open_file(file_path: Union[str, Path],
 
 
 @contextmanager
-def open_file_with_http(url: str, mode="r", **kwargs) -> Iterator[IO[Any]]:
+def open_file_with_http(url: str, mode: str = "r", **kwargs: Any) -> Iterator[IO[Any]]:
     if not mode.startswith("r"):
         raise ValueError(f"invalid mode for http(s): {mode}")
     temp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -120,8 +121,9 @@ def open_file_with_http(url: str, mode="r", **kwargs) -> Iterator[IO[Any]]:
 
 
 @contextmanager
-def open_file_with_fs(file_path: Union[str, Path], *args,
-                      **kwargs) -> Iterator[IO[Any]]:
+def open_file_with_fs(
+    file_path: Union[str, Path], *args: Any, **kwargs: Any
+) -> Iterator[IO[Any]]:
     file_path = str(file_path)
     parent, name = get_parent_path_and_filename(file_path)
 
@@ -132,19 +134,18 @@ def open_file_with_fs(file_path: Union[str, Path], *args,
 
 def _session_with_backoff() -> requests.Session:
     """
-    https://stackoverflow.com/questions/23267409/how-to-implement-retry-mechanism-into-python-requests-library
+    https://stackoverflow.com/questions/23267409/
+      how-to-implement-retry-mechanism-into-python-requests-library
     """
     session = requests.Session()
-    retries = Retry(total=5,
-                    backoff_factor=1,
-                    status_forcelist=[502, 503, 504])
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
     session.mount("http://", HTTPAdapter(max_retries=retries))
     session.mount("https://", HTTPAdapter(max_retries=retries))
 
     return session
 
 
-def _http_get(url: str, temp_file: IO) -> None:
+def _http_get(url: str, temp_file: IO[Any]) -> None:
     with _session_with_backoff() as session:
         req = session.get(url, stream=True)
         req.raise_for_status()

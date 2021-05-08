@@ -1,16 +1,17 @@
 from __future__ import annotations
-from typing import cast, Dict, Optional, Tuple, Union
+
 from pathlib import Path
+from typing import Dict, Optional, Tuple, Union, cast
 
 import colt
 import numpy
 import pandas
 from sklearn.base import BaseEstimator
 
-from automlcli.util import get_file_ext, cached_path
+from automlcli.util import cached_path, get_file_ext
 
 
-class Model(colt.Registrable):
+class Model(colt.Registrable):  # type: ignore
     def __init__(
         self,
         target_column: str,
@@ -28,16 +29,16 @@ class Model(colt.Registrable):
         ext = get_file_ext(file_path)
         if ext in (".pkl", ".pickle"):
             df = pandas.read_pickle(file_path)
-        elif ext in (".csv", ):
+        elif ext in (".csv",):
             df = pandas.read_csv(file_path)
-        elif ext in (".tsv", ):
+        elif ext in (".tsv",):
             df = pandas.read_csv(file_path, sep="\t")
-        elif ext in (".jsonl", ):
+        elif ext in (".jsonl",):
             df = pandas.read_json(file_path, orient="records", lines=True)
         else:
             raise ValueError(f"Not supported file format: {file_path}")
 
-        df = pandas.read_csv(file_path)
+        df = cast(pandas.DataFrame, pandas.read_csv(file_path))
         y: Optional[numpy.ndarray] = None
         if self._target_column in df.columns:
             y = df.pop(self._target_column).to_numpy()

@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 
 from automlcli.commands import create_parser
-from automlcli.commands.train import TrainCommand
+from automlcli.commands.train import TrainCommand  # noqa: F401
 
 FIXTURE_PATH = Path("tests/fixtures")
 
@@ -16,16 +16,18 @@ def test_train_command():
         output_dir = Path(tempdir) / "output"
 
         parser = create_parser()
-        args = parser.parse_args([
-            "train",
-            str(config_path),
-            str(train_path),
-            "model.target_column=target",
-            "--serialization-dir",
-            str(output_dir),
-            "--validation",
-            str(validation_path),
-        ])
+        args = parser.parse_args(
+            [
+                "train",
+                str(config_path),
+                str(train_path),
+                "model.target_column=target",
+                "--serialization-dir",
+                str(output_dir),
+                "--validation",
+                str(validation_path),
+            ]
+        )
 
         args.func(args)
 

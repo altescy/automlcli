@@ -2,9 +2,9 @@ import argparse
 import logging
 import pickle
 
+from automlcli.commands.subcommand import Subcommand
 from automlcli.models import Model
 from automlcli.util import open_file
-from automlcli.commands.subcommand import Subcommand
 
 logger = logging.getLogger(__name__)
 

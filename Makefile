@@ -1,9 +1,7 @@
 PWD      := $(shell pwd)
 PYTHON   := poetry run python
 PYTEST   := poetry run pytest
-MYPY     := poetry run mypy
-PYLINT   := poetry run pylint
-PYLINTRC := $(PWD)/.pylintrc
+PYSEN    := poetry run pysen
 MODULE   := automlcli
 
 .PHONY: all
@@ -13,13 +11,13 @@ all: mypy lint test
 test:
 	PYTHONPATH=$(PWD) $(PYTEST)
 
-.PHONY: mypy
-mypy:
-	PYTHONPATH=$(PWD) $(MYPY) $(MODULE)
-
 .PHONY: lint
 lint:
-	$(PYLINT) --rcfile=$(PYLINTRC) $(MODULE)
+	PYTHONPATH=$(PWD) $(PYSEN) run lint
+
+.PHONY: format
+format:
+	PYTHONPATH=$(PWD) $(PYSEN) run format
 
 .PHONY: clean
 clean: clean-pyc clean-build

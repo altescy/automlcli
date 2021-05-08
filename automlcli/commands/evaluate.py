@@ -6,9 +6,9 @@ import pickle
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import cross_validate
 
+from automlcli.commands.subcommand import Subcommand
 from automlcli.models import Model
 from automlcli.util import open_file
-from automlcli.commands.subcommand import Subcommand
 
 logger = logging.getLogger(__name__)
 
@@ -68,22 +68,16 @@ class EvaluateCommand(Subcommand):
         scorers = {scoring: get_scorer(scoring) for scoring in scoring}
         if args.cv is None:
             metrics = {
-                metric: scorer(estimator, X, y)
-                for metric, scorer in scorers.items()
+                metric: scorer(estimator, X, y) for metric, scorer in scorers.items()
             }
             for metric, score in metrics.items():
                 print(f"{metric:24s} : {score:.4f}")
         else:
-            metrics = cross_validate(estimator,
-                                     X,
-                                     y,
-                                     cv=args.cv,
-                                     scoring=scoring,
-                                     n_jobs=-1)
+            metrics = cross_validate(
+                estimator, X, y, cv=args.cv, scoring=scoring, n_jobs=-1
+            )
             for metric, scores in metrics.items():
-                print(
-                    f"{metric:24s}: {scores.mean():.4f} +/- {scores.std():.4f}"
-                )
+                print(f"{metric:24s}: {scores.mean():.4f} +/- {scores.std():.4f}")
                 metrics[metric] = list(scores)
 
         if args.output_file is not None:

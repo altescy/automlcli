@@ -1,19 +1,20 @@
-from typing import Dict, Optional, Union
-from pathlib import Path
-import re
 import pickle
+import re
 import sys
 import tempfile
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 from sklearn.base import BaseEstimator
+
 try:
     import tpot
 except ImportError:
     tpot = None
 
 from automlcli.exceptions import ConfigurationError
-from automlcli.models.model import Model
 from automlcli.io import TeeingIO
+from automlcli.models.model import Model
 
 
 @Model.register("tpot")
@@ -25,14 +26,14 @@ class Tpot(Model):
         task: str,
         target_column: str,
         cv_after_training: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         if tpot is None:
-            raise ImportError("Failed to import flaml. Make sure "
-                              "flaml is successfully installed")
-        if task not in Tpot.TPOT_TASKS:
-            raise ConfigurationError("task must be 'classification' "
-                                     "or 'regression'")
+            raise ImportError(
+                "Failed to import flaml. Make sure " "flaml is successfully installed"
+            )
+        if task not in self.TPOT_TASKS:
+            raise ConfigurationError("task must be 'classification' " "or 'regression'")
 
         super().__init__(target_column)
         self._task = task
@@ -69,18 +70,14 @@ class Tpot(Model):
             pipeline_code_file_name = workdir / "pipeline.py"
 
             with open(log_file_name, "w") as log_file:
-                teeing_log_file = TeeingIO(
-                    log_file,
-                    sys.stdout,
-                )  # type: ignore
+                teeing_log_file = TeeingIO(log_file, sys.stdout)
                 if self._task == "classification":
                     model = tpot.TPOTClassifier(
                         log_file=teeing_log_file,
                         **self._kwargs,
                     )
                 else:
-                    model = tpot.TPOTRegressor(log_file=teeing_log_file,
-                                               **self._kwargs)
+                    model = tpot.TPOTRegressor(log_file=teeing_log_file, **self._kwargs)
 
                 model.fit(X_train, y_train)
 
@@ -110,8 +107,7 @@ class Tpot(Model):
     def _get_metrics_from_log(log: str) -> Dict[str, float]:
         best_cv_score = -float("inf")
         for line in log.splitlines():
-            match = re.search(r"Current best internal CV score: ([0-9.]+)",
-                              line)
+            match = re.search(r"Current best internal CV score: ([0-9.]+)", line)
             if match is None:
                 continue
             cv_score = float(match.group(1))

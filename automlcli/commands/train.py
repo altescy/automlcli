@@ -4,8 +4,10 @@ import logging
 import pickle
 import sys
 from contextlib import contextmanager
+from typing import Any, Dict, Iterator
 
 from flatten_dict import flatten
+
 try:
     import mlflow
 
@@ -13,17 +15,14 @@ try:
     _mlflow_log_param = mlflow.log_param
     _mlflow_log_params = mlflow.log_params
 
-    def _log_params(params):
+    def _log_params(params: Dict[str, Any]) -> None:
         flattened_params = flatten(params, reducer="dot")
         _mlflow_log_params(flattened_params)
 
-    def _log_param(key, value):
+    def _log_param(key: str, value: Any) -> None:
         if isinstance(value, dict):
             flattened_params = flatten(value, reducer="dot")
-            flattened_params = {
-                f"{key}.k": v
-                for k, v in flattened_params.items()
-            }
+            flattened_params = {f"{key}.k": v for k, v in flattened_params.items()}
             _log_params(flattened_params)
         else:
             _mlflow_log_param(key, value)
@@ -33,15 +32,15 @@ try:
 except ImportError:
     mlflow = None
 
-from automlcli.configs import load_yaml, build_config
-from automlcli.util import cached_path, create_workdir
 from automlcli.commands.subcommand import Subcommand
+from automlcli.configs import build_config, load_yaml
+from automlcli.util import cached_path, create_workdir
 
 logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def _mlflow_start_run(*args, **kwargs):
+def _mlflow_start_run(*args: Any, **kwargs: Any) -> Iterator[Any]:
     if mlflow is not None:
         with mlflow.start_run(*args, **kwargs) as run:
             yield run
@@ -103,7 +102,7 @@ class TrainCommand(Subcommand):
         logger.info("Training data: %s", args.train)
         logger.info("Validation data: %s", str(args.validation))
 
-        with _mlflow_start_run() as _run:
+        with _mlflow_start_run():
             if mlflow is not None:
                 logger.info("Log params to mlflow")
                 params = {
@@ -121,8 +120,8 @@ class TrainCommand(Subcommand):
                 serialization_dir = "./output"
 
             with create_workdir(
-                    serialization_dir,
-                    exist_ok=args.force,
+                serialization_dir,
+                exist_ok=args.force,
             ) as workdir:
                 try:
                     metrics = model.train(args.train, args.validation, workdir)
@@ -131,8 +130,7 @@ class TrainCommand(Subcommand):
                         mlflow.log_metrics(metrics)
 
                     logger.info("Training completed")
-                    logger.info("Training metrics: %s",
-                                json.dumps(metrics, indent=2))
+                    logger.info("Training metrics: %s", json.dumps(metrics, indent=2))
 
                     with open(workdir / "metrics.json", "w") as metrics_file:
                         json.dump(metrics, metrics_file)

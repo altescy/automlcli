@@ -1,18 +1,16 @@
+import pickle
 import tempfile
 from pathlib import Path
 
-import numpy
 import pandas
-import pickle
 
 from automlcli.commands import create_parser
-from automlcli.commands.predict import PredictCommand
+from automlcli.commands.predict import PredictCommand  # noqa: F401
 
 FIXTURE_PATH = Path("tests/fixtures")
 
 
-def test_train_command():
-    config_path = FIXTURE_PATH / "configs" / "config.yml"
+def test_train_command() -> None:
     model_path = FIXTURE_PATH / "data" / "model.pkl"
     test_path = FIXTURE_PATH / "data" / "test.csv"
 
@@ -21,13 +19,15 @@ def test_train_command():
         prediction_path = tempdir / "preds.pkl"
 
         parser = create_parser()
-        args = parser.parse_args([
-            "predict",
-            str(model_path),
-            str(test_path),
-            "--output-file",
-            str(prediction_path),
-        ])
+        args = parser.parse_args(
+            [
+                "predict",
+                str(model_path),
+                str(test_path),
+                "--output-file",
+                str(prediction_path),
+            ]
+        )
 
         args.func(args)
 

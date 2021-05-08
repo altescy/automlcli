@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Union
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import colt
 from omegaconf import OmegaConf
@@ -11,7 +11,7 @@ from automlcli.settings import DEFAULT_COLT_SETTING
 
 def load_yaml(
     file_path: Union[str, Path],
-    overrides: List[str] = None,
+    overrides: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     overrides = overrides or []
 

@@ -1,15 +1,16 @@
 from __future__ import annotations
-from typing import Any, Dict, Optional, Union
-from pathlib import Path
+
 import json
 import tempfile
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 import numpy
 from sklearn.base import BaseEstimator
 
 try:
     import flaml
-except ImportError as err:
+except ImportError:
     flaml = None
 
 from automlcli.models.model import Model
@@ -18,10 +19,11 @@ from automlcli.util import cached_path
 
 @Model.register("flaml")
 class FLAML(Model):
-    def __init__(self, target_column: str, **kwargs) -> None:
+    def __init__(self, target_column: str, **kwargs: Any) -> None:
         if flaml is None:
-            raise ImportError("Failed to import flaml. Make sure "
-                              "flaml is successfully installed")
+            raise ImportError(
+                "Failed to import flaml. Make sure " "flaml is successfully installed"
+            )
         super().__init__(target_column)
         self._target_column = target_column
         self._kwargs = kwargs
@@ -97,6 +99,8 @@ class FLAML(Model):
     def retrain(self, train_file: Union[str, Path]) -> None:
         X_train, y_train = self.load_data(train_file)
         if y_train is None:
-            raise ValueError(f"Target column ({self._target_column}) does "
-                             f"not exists in {train_file}")
+            raise ValueError(
+                f"Target column ({self._target_column}) does "
+                f"not exists in {train_file}"
+            )
         self._flaml_best_model = self.estimator.fit(X_train, y_train)
