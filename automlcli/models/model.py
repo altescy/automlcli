@@ -8,7 +8,7 @@ import numpy
 import pandas
 from sklearn.base import BaseEstimator
 
-from automlcli.util import cached_path, get_file_ext
+from automlcli.util import cached_path, ext_match
 
 
 class Model(colt.Registrable):  # type: ignore
@@ -31,14 +31,13 @@ class Model(colt.Registrable):  # type: ignore
         file_path: Union[str, Path],
     ) -> pandas.DataFrame:
         file_path = cached_path(file_path)
-        ext = get_file_ext(file_path)
-        if ext in (".pkl", ".pickle"):
+        if ext_match(file_path, ["pkl", "pickle"]):
             df = pandas.read_pickle(file_path)
-        elif ext in (".csv",):
+        elif ext_match(file_path, ["csv"]):
             df = pandas.read_csv(file_path)
-        elif ext in (".tsv",):
+        elif ext_match(file_path, ["tsv"]):
             df = pandas.read_csv(file_path, sep="\t")
-        elif ext in (".jsonl",):
+        elif ext_match(file_path, ["jsonl"]):
             df = pandas.read_json(file_path, orient="records", lines=True)
         else:
             raise ValueError(f"Not supported file format: {file_path}")

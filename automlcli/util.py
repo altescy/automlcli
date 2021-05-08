@@ -1,10 +1,11 @@
 import hashlib
 import logging
 import os
+import re
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import IO, Any, Iterator, Optional, Tuple, Union
+from typing import IO, Any, Iterable, Iterator, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import requests
@@ -17,6 +18,13 @@ from urllib3.util.retry import Retry
 from automlcli.settings import CACHE_DIRRECTORY
 
 logger = logging.getLogger(__name__)
+
+
+def ext_match(file_path: Union[str, Path], exts: Iterable[str]) -> bool:
+    filename = str(file_path)
+    pattern = re.compile(rf".+\.{ '|'.join(exts) }(\..*)?$")
+    match = re.match(pattern, filename)
+    return match is not None
 
 
 def get_file_ext(file_path: Union[str, Path]) -> str:
