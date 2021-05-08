@@ -2,6 +2,7 @@ AutoMLCLI
 =========
 
 [![Actions Status](https://github.com/altescy/automlcli/workflows/CI/badge.svg)](https://github.com/altescy/automlcli/actions?query=workflow%3ACI)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/altescy/automlcli)](https://github.com/altescy/automlcli/)
 
 AutoMLCLI is a simple AutoML command line tool for tabular data.
 
