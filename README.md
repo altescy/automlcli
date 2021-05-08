@@ -38,18 +38,26 @@ model:
 
 #### Train a model
 ```
-$ automl train config.yml train.csv --serialization-dir out
+$ automl train \
+    config.yml \
+    https://raw.githubusercontent.com/altescy/automlcli/main/tests/fixtures/data/train.csv \
+    --serialization-dir out
 $ ls out
 best.json  flaml.log  metrics.json  model.pkl
 ```
 
 #### Evaluate the trained model
 ```
-$ automl evaluate out/model.pkl dev.csv --cv 5 --scoring accuracy --scoring f1_macro
+$ automl evaluate \
+    out/model.pkl \
+    https://raw.githubusercontent.com/altescy/automlcli/main/tests/fixtures/data/dev.csv \
+    --cv 5 --scoring accuracy --scoring f1_macro
 ```
 
 #### Make prediction
 ```
-$ automl predict out/model.pkl test.csv --output-file predictions.pkl
+$ automl predict \
+    out/model.pkl \
+    https://raw.githubusercontent.com/altescy/automlcli/main/tests/fixtures/data/test.csv \
+    --output-file predictions.csv
 ```
-
