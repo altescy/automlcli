@@ -29,12 +29,20 @@ def load_yaml(
 
 
 def build_config(config: Dict[str, Any]) -> Model:
+    if "automlcli" in config:
+        config = config["automlcli"]
+        if not isinstance(config, dict):
+            raise ConfigurationError(
+                "`automlcli` field is given, but it is not a dictionary."
+            )
+
     random_seed = config.pop("random_seed", 13370)
     numpy_seed = config.pop("numpy_seed", 1337)
     set_random_seed(random_seed, numpy_seed)
 
     colt_config = DEFAULT_COLT_SETTING
     colt_config.update(config.pop("colt", {}))
+
     model_config = config["model"]
     model = colt.build(model_config, cls=Model, **colt_config)  # type: Model
     return model
