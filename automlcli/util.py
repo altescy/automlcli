@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 import re
 import tempfile
 from contextlib import contextmanager
@@ -7,10 +8,21 @@ from pathlib import Path
 from typing import Iterable, Iterator, Optional, Tuple, Union
 from urllib.parse import urlparse
 
+import numpy
 from fs import open_fs
 from fs.copy import copy_fs
 
 logger = logging.getLogger(__name__)
+
+
+def set_random_seed(
+    random_seed: Optional[int] = None,
+    numpy_seed: Optional[int] = None,
+) -> None:
+    if random_seed:
+        random.seed(random_seed)
+    if numpy_seed:
+        numpy.random.seed(numpy_seed)
 
 
 def ext_match(file_path: Union[str, Path], exts: Iterable[str]) -> bool:

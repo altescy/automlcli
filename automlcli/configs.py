@@ -7,6 +7,7 @@ from omegaconf import OmegaConf
 from automlcli.exceptions import ConfigurationError
 from automlcli.models import Model
 from automlcli.settings import DEFAULT_COLT_SETTING
+from automlcli.util import set_random_seed
 
 
 def load_yaml(
@@ -28,6 +29,10 @@ def load_yaml(
 
 
 def build_config(config: Dict[str, Any]) -> Model:
+    random_seed = config.pop("random_seed", 13370)
+    numpy_seed = config.pop("numpy_seed", 1337)
+    set_random_seed(random_seed, numpy_seed)
+
     colt_config = DEFAULT_COLT_SETTING
     colt_config.update(config.pop("colt", {}))
     model_config = config["model"]
