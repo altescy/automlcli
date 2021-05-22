@@ -4,11 +4,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union, cast
 
 import colt
+import minato
 import numpy
 import pandas
 from sklearn.base import BaseEstimator
 
-from automlcli.util import cached_path, ext_match
+from automlcli.util import ext_match
 
 
 class Model(colt.Registrable):  # type: ignore
@@ -30,7 +31,7 @@ class Model(colt.Registrable):  # type: ignore
         self,
         file_path: Union[str, Path],
     ) -> pandas.DataFrame:
-        file_path = cached_path(file_path)
+        file_path = minato.cached_path(file_path)
         if ext_match(file_path, ["pkl", "pickle"]):
             df = pandas.read_pickle(file_path)
         elif ext_match(file_path, ["csv"]):

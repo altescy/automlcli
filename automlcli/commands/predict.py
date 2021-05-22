@@ -3,9 +3,10 @@ import logging
 import pickle
 import sys
 
+import minato
+
 from automlcli.commands.subcommand import Subcommand
 from automlcli.models import Model
-from automlcli.util import open_file
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class PredictCommand(Subcommand):
 
     def run(self, args: argparse.Namespace) -> None:
         logger.info("Load model from %s", args.model)
-        with open_file(args.model, "rb") as fp:
+        with minato.open(args.model, "rb") as fp:
             model = pickle.load(fp)  # type: Model
 
         logger.info("Make predictions for %s", args.data)
@@ -52,7 +53,7 @@ class PredictCommand(Subcommand):
 
         if args.output_file is not None:
             logger.info("Save predictions to %s", args.output_file)
-            with open_file(args.output_file, "wb") as fp:
+            with minato.open(args.output_file, "wb") as fp:
                 predictions.to_csv(fp)
 
         logger.info("Done!")

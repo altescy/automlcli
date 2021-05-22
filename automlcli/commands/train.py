@@ -6,6 +6,7 @@ import sys
 from contextlib import contextmanager
 from typing import Any, Dict, Iterator
 
+import minato
 from flatten_dict import flatten
 
 try:
@@ -34,7 +35,7 @@ except ImportError:
 
 from automlcli.commands.subcommand import Subcommand
 from automlcli.configs import build_config, load_yaml
-from automlcli.util import cached_path, create_workdir
+from automlcli.util import create_workdir
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class TrainCommand(Subcommand):
 
     def run(self, args: argparse.Namespace) -> None:
         logger.info("Load config from %s", args.config)
-        config = load_yaml(cached_path(args.config), args.overrides)
+        config = load_yaml(minato.cached_path(args.config), args.overrides)
 
         logger.info("Configuration: %s", str(config))
         model = build_config(config)

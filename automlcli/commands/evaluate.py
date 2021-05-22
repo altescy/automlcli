@@ -3,12 +3,12 @@ import json
 import logging
 import pickle
 
+import minato
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import cross_validate
 
 from automlcli.commands.subcommand import Subcommand
 from automlcli.models import Model
-from automlcli.util import open_file
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class EvaluateCommand(Subcommand):
 
     def run(self, args: argparse.Namespace) -> None:
         logger.info("Load model from %s", args.model)
-        with open_file(args.model, "rb") as fp:
+        with minato.open(args.model, "rb") as fp:
             model = pickle.load(fp)  # type: Model
 
         estimator = model.estimator
@@ -82,7 +82,7 @@ class EvaluateCommand(Subcommand):
 
         if args.output_file is not None:
             logger.info("Save predictions to %s", args.output_file)
-            with open_file(args.output_file, "w") as fp:
+            with minato.open(args.output_file, "w") as fp:
                 json.dump(metrics, fp)
 
         logger.info("Done!")

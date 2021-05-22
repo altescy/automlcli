@@ -2,9 +2,10 @@ import argparse
 import logging
 import pickle
 
+import minato
+
 from automlcli.commands.subcommand import Subcommand
 from automlcli.models import Model
-from automlcli.util import open_file
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +36,13 @@ class RetrainCommand(Subcommand):
 
     def run(self, args: argparse.Namespace) -> None:
         logger.info("Load model from %s", args.model)
-        with open_file(args.model, "rb") as fp:
+        with minato.open(args.model, "rb") as fp:
             model = pickle.load(fp)  # type: Model
 
         logger.info("Retrain model with %s", args.data)
         model.retrain(args.data)
 
-        with open_file(args.output, "wb") as fp:
+        with minato.open(args.output, "wb") as fp:
             pickle.dump(model, fp)
 
         logger.info("Done!")

@@ -11,6 +11,3 @@ AUTOMLCLI_ROOT = Path.home() / ".automlcli"
 # plugin settings
 LOCAL_PLUGINS_FILENAME = ".automlcli_plugins"
 GLOBAL_PLUGINS_FILENAME = AUTOMLCLI_ROOT / "plugins"
-
-# cache settings
-CACHE_DIRRECTORY = AUTOMLCLI_ROOT / "cache"
