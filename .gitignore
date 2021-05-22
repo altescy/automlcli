@@ -26,3 +26,7 @@ __pycache__
 
 # editor
 .vim
+
+# artifacts
+catboost_info
+mlruns
