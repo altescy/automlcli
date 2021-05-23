@@ -31,15 +31,16 @@ class Model(colt.Registrable):  # type: ignore
         self,
         file_path: Union[str, Path],
     ) -> pandas.DataFrame:
-        file_path = minato.cached_path(file_path)
+        file_cache_path = minato.cached_path(file_path)
+        print(">>>>>>>>>>>>>>>> file_path", file_path)
         if ext_match(file_path, ["pkl", "pickle"]):
-            df = pandas.read_pickle(file_path)
+            df = pandas.read_pickle(file_cache_path)
         elif ext_match(file_path, ["csv"]):
-            df = pandas.read_csv(file_path)
+            df = pandas.read_csv(file_cache_path)
         elif ext_match(file_path, ["tsv"]):
-            df = pandas.read_csv(file_path, sep="\t")
+            df = pandas.read_csv(file_cache_path, sep="\t")
         elif ext_match(file_path, ["jsonl"]):
-            df = pandas.read_json(file_path, orient="records", lines=True)
+            df = pandas.read_json(file_cache_path, orient="records", lines=True)
         else:
             raise ValueError(f"Not supported file format: {file_path}")
         return df

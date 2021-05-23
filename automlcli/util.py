@@ -26,7 +26,7 @@ def set_random_seed(
 
 
 def ext_match(file_path: Union[str, Path], exts: Iterable[str]) -> bool:
-    filename = str(file_path)
+    filename = urlparse(str(file_path)).path
     pattern = re.compile(rf".+\.{ '|'.join(exts) }(\..*)?$")
     match = re.match(pattern, filename)
     return match is not None

@@ -13,8 +13,6 @@ try:
 except ImportError:
     flaml = None
 
-import minato
-
 from automlcli.models.model import Model
 
 
@@ -46,7 +44,6 @@ class FLAML(Model):
         validation_file: Optional[Union[str, Path]] = None,
         workdir: Optional[Union[str, Path]] = None,
     ) -> Dict[str, float]:
-        train_file = minato.cached_path(train_file)
         X_train, y_train = self.load_data(train_file)
         assert y_train is not None
 
