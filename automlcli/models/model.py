@@ -24,6 +24,10 @@ class Model(colt.Registrable):  # type: ignore
         self._ignored_columns = ignored_columns or []
 
     @property
+    def index_column(self) -> Optional[str]:
+        return self._index_column
+
+    @property
     def estimator(self) -> BaseEstimator:
         raise NotImplementedError
 
@@ -32,7 +36,6 @@ class Model(colt.Registrable):  # type: ignore
         file_path: Union[str, Path],
     ) -> pandas.DataFrame:
         file_cache_path = minato.cached_path(file_path)
-        print(">>>>>>>>>>>>>>>> file_path", file_path)
         if ext_match(file_path, ["pkl", "pickle"]):
             df = pandas.read_pickle(file_cache_path)
         elif ext_match(file_path, ["csv"]):
