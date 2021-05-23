@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from typing import Any, Dict, Iterator
 
 import minato
+import yaml
 from flatten_dict import flatten
 
 try:
@@ -112,19 +113,16 @@ class TrainCommand(Subcommand):
         logger.info("Training data: %s", str(train_file))
         logger.info("Validation data: %s", str(validation_file))
 
-        with _mlflow_start_run():
-            if mlflow is not None:
-                logger.info("Log params to mlflow")
-                params = {
-                    "command": " ".join(sys.argv),
-                    "config_file": args.config,
-                    "train_file": train_file,
-                    "validation_file": validation_file,
-                    "serialization_dir": args.serialization_dir,
-                    "config": config,
-                }
-                mlflow.log_params(params)
+        params = {
+            "command": " ".join(sys.argv),
+            "config_file": args.config,
+            "train_file": train_file,
+            "validation_file": validation_file,
+            "serialization_dir": args.serialization_dir,
+            "config": config,
+        }
 
+        with _mlflow_start_run():
             serialization_dir = args.serialization_dir
             if args.serialization_dir is None and mlflow is None:
                 serialization_dir = "./output"
@@ -133,8 +131,20 @@ class TrainCommand(Subcommand):
                 serialization_dir,
                 exist_ok=args.force,
             ) as workdir:
+                workdir = workdir.absolute()
                 try:
+                    with open(workdir / "config.yaml", "w") as f:
+                        yaml.dump(config, f)
+
+                    with open(workdir / "params.json", "w") as f:
+                        json.dump(params, f, indent=2)
+
+                    if mlflow is not None:
+                        logger.info("Log params to mlflow")
+                        mlflow.log_params(params)
+
                     metrics = model.train(train_file, validation_file, workdir)
+
                     if mlflow is not None:
                         logger.info("Log metrics to mlflow")
                         mlflow.log_metrics(metrics)
