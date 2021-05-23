@@ -48,12 +48,14 @@ class PredictCommand(Subcommand):
         logger.info("Make predictions for %s", args.data)
         predictions = model.predict(args.data)
 
+        index = model.index_column is not None
+
         if not args.quiet:
-            predictions.to_csv(sys.stdout)
+            predictions.to_csv(sys.stdout, index=index)
 
         if args.output_file is not None:
             logger.info("Save predictions to %s", args.output_file)
             with minato.open(args.output_file, "wb") as fp:
-                predictions.to_csv(fp)
+                predictions.to_csv(fp, index=index)
 
         logger.info("Done!")
