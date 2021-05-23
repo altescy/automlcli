@@ -34,7 +34,8 @@ except ImportError:
     mlflow = None
 
 from automlcli.commands.subcommand import Subcommand
-from automlcli.configs import build_config, load_yaml
+from automlcli.configs import ConfigBuilder, load_yaml
+from automlcli.exceptions import ConfigurationError
 from automlcli.util import create_workdir
 
 logger = logging.getLogger(__name__)
@@ -64,11 +65,13 @@ class TrainCommand(Subcommand):
         self.parser.add_argument(
             "train",
             type=str,
+            nargs="?",
             help="path to a training data file",
         )
         self.parser.add_argument(
-            "overrides",
-            nargs="*",
+            "--overrides",
+            action="append",
+            default=[],
             help="arguments to override config values",
         )
         self.parser.add_argument(
@@ -97,11 +100,17 @@ class TrainCommand(Subcommand):
         config = load_yaml(minato.cached_path(args.config), args.overrides)
 
         logger.info("Configuration: %s", str(config))
-        model = build_config(config)
+        builder = ConfigBuilder.build(config)
+        model = builder.model
+        train_file = args.train or builder.train_file
+        validation_file = args.validation or builder.validation_file
+
+        if not train_file:
+            raise ConfigurationError("train file is required.")
 
         logger.info("Start training...")
-        logger.info("Training data: %s", args.train)
-        logger.info("Validation data: %s", str(args.validation))
+        logger.info("Training data: %s", str(train_file))
+        logger.info("Validation data: %s", str(validation_file))
 
         with _mlflow_start_run():
             if mlflow is not None:
@@ -109,8 +118,8 @@ class TrainCommand(Subcommand):
                 params = {
                     "command": " ".join(sys.argv),
                     "config_file": args.config,
-                    "train_file": args.train,
-                    "validation_file": args.validation,
+                    "train_file": train_file,
+                    "validation_file": validation_file,
                     "serialization_dir": args.serialization_dir,
                     "config": config,
                 }
@@ -125,7 +134,7 @@ class TrainCommand(Subcommand):
                 exist_ok=args.force,
             ) as workdir:
                 try:
-                    metrics = model.train(args.train, args.validation, workdir)
+                    metrics = model.train(train_file, validation_file, workdir)
                     if mlflow is not None:
                         logger.info("Log metrics to mlflow")
                         mlflow.log_metrics(metrics)

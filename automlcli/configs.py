@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -28,21 +30,47 @@ def load_yaml(
     return dictconfig
 
 
-def build_config(config: Dict[str, Any]) -> Model:
-    if "automlcli" in config:
-        config = config["automlcli"]
-        if not isinstance(config, dict):
-            raise ConfigurationError(
-                "`automlcli` field is given, but it is not a dictionary."
-            )
+class ConfigBuilder:
+    @classmethod
+    def build(cls, config: Dict[str, Any]) -> ConfigBuilder:
+        if "automlcli" in config:
+            config = config["automlcli"]
+            if not isinstance(config, dict):
+                raise ConfigurationError(
+                    "`automlcli` field is given, but it is not a dictionary."
+                )
 
-    random_seed = config.pop("random_seed", 13370)
-    numpy_seed = config.pop("numpy_seed", 1337)
-    set_random_seed(random_seed, numpy_seed)
+        random_seed = config.get("random_seed", 13370)
+        numpy_seed = config.get("numpy_seed", 1337)
+        set_random_seed(random_seed, numpy_seed)
 
-    colt_config = DEFAULT_COLT_SETTING
-    colt_config.update(config.pop("colt", {}))
+        train_file = config.get("train_file")
+        validation_file = config.get("validation_file")
+        test_file = config.get("test_file")
 
-    model_config = config["model"]
-    model = colt.build(model_config, cls=Model, **colt_config)  # type: Model
-    return model
+        if isinstance(train_file, str):
+            train_file = Path(train_file)
+        if isinstance(validation_file, str):
+            validation_file = Path(validation_file)
+        if isinstance(test_file, str):
+            test_file = Path(test_file)
+
+        colt_config = DEFAULT_COLT_SETTING
+        colt_config.update(config.get("colt", {}))
+
+        model_config = config["model"]
+        model = colt.build(model_config, cls=Model, **colt_config)  # type: Model
+
+        return cls(model, train_file, validation_file, test_file)
+
+    def __init__(
+        self,
+        model: Model,
+        train_file: Optional[Path] = None,
+        validation_file: Optional[Path] = None,
+        test_file: Optional[Path] = None,
+    ) -> None:
+        self.model = model
+        self.train_file = train_file
+        self.validation_file = validation_file
+        self.test_file = test_file

@@ -1,3 +1,10 @@
+random_seed: 42
+numpy_seed: 42
+
+train_file: tests/fixtures/data/train.csv
+validation_file: tests/fixtures/data/dev.csv
+test_file: tests/fixtures/data/test.csv
+
 model:
   type: flaml
   time_budget: 1
