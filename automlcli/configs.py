@@ -48,13 +48,6 @@ class ConfigBuilder:
         validation_file = config.get("validation_file")
         test_file = config.get("test_file")
 
-        if isinstance(train_file, str):
-            train_file = Path(train_file)
-        if isinstance(validation_file, str):
-            validation_file = Path(validation_file)
-        if isinstance(test_file, str):
-            test_file = Path(test_file)
-
         colt_config = DEFAULT_COLT_SETTING
         colt_config.update(config.get("colt", {}))
 
@@ -66,9 +59,9 @@ class ConfigBuilder:
     def __init__(
         self,
         model: Model,
-        train_file: Optional[Path] = None,
-        validation_file: Optional[Path] = None,
-        test_file: Optional[Path] = None,
+        train_file: Optional[str] = None,
+        validation_file: Optional[str] = None,
+        test_file: Optional[str] = None,
     ) -> None:
         self.model = model
         self.train_file = train_file
