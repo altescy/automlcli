@@ -35,6 +35,12 @@ class PredictCommand(Subcommand):
             help="path to a output file of prediction",
         )
         self.parser.add_argument(
+            "--output-column",
+            type=str,
+            default=None,
+            help="column name of prediction",
+        )
+        self.parser.add_argument(
             "--quiet",
             action="store_true",
             help="do not show predicted results",
@@ -46,7 +52,10 @@ class PredictCommand(Subcommand):
             model = pickle.load(fp)  # type: Model
 
         logger.info("Make predictions for %s", args.data)
-        predictions = model.predict(args.data)
+        predictions = model.predict(
+            args.data,
+            prediction_column=args.output_column,
+        )
 
         index = model.index_column is not None
 

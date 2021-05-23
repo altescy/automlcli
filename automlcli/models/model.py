@@ -86,12 +86,18 @@ class Model(colt.Registrable):  # type: ignore
     def predict(
         self,
         file_path: Union[str, Path],
+        prediction_column: Optional[str] = None,
     ) -> pandas.DataFrame:
         df = self.load_dataframe(file_path)
         X, _ = self._dataframe_to_array(df)
 
         y_pred = cast(numpy.ndarray, self.estimator.predict(X))
 
-        df["prediction"] = y_pred
+        if prediction_column is not None:
+            column = prediction_column
+        else:
+            column = self._target_column
 
-        return df[["prediction"]]
+        df[column] = y_pred
+
+        return df[[column]]
